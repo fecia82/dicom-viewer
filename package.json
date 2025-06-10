@@ -10,8 +10,8 @@
   "dependencies": {
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "dcmjs": "^4.0.0",
-    "dicom-parser": "^1.9.7",
+    "dcmjs": "^0.41.0",
+    "dicom-parser": "^1.8.21",
     "@ffmpeg/ffmpeg": "^0.12.4",
     "pptxgenjs": "^3.10.1"
   },
