@@ -20,23 +20,61 @@ export default function App() {
     return () => workerRef.current.terminate();
   }, []);
 
+  const processFile = async file => {
+    if (
+      file.name.toLowerCase().endsWith(".dcm") ||
+      (await file.slice(128, 132).text()) === "DICM"
+    ) {
+      workerRef.current.postMessage({ file });
+    }
+  };
+
+  const openFilesFallback = () => {
+    return new Promise(resolve => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.multiple = true;
+      input.onchange = async () => {
+        const files = Array.from(input.files || []);
+        for (const f of files) await processFile(f);
+        resolve();
+      };
+      input.click();
+    });
+  };
+
   const openFolder = async () => {
+    if (!window.showDirectoryPicker) {
+      await openFilesFallback();
+      return;
+    }
     try {
       const dirHandle = await window.showDirectoryPicker();
       for await (const entry of dirHandle.values()) {
         if (entry.kind === "file") {
           const file = await entry.getFile();
-          if (
-            file.name.toLowerCase().endsWith(".dcm") ||
-            (await file.slice(128, 132).text()) === "DICM"
-          ) {
-            workerRef.current.postMessage({ file });
-          }
+          await processFile(file);
         }
       }
     } catch (err) {
-      alert("Elige Chrome/Edge o usa el selector de archivos");
+      await openFilesFallback();
     }
+  };
+
+  const openFiles = async () => {
+    if (window.showOpenFilePicker) {
+      try {
+        const handles = await window.showOpenFilePicker({ multiple: true });
+        for (const h of handles) {
+          const file = await h.getFile();
+          await processFile(file);
+        }
+        return;
+      } catch (e) {
+        /* fall back */
+      }
+    }
+    await openFilesFallback();
   };
 
   const toggle = a =>
@@ -74,6 +112,9 @@ export default function App() {
       <h1>DICOM Viewer (100 % local)</h1>
       <p>
         <button onClick={openFolder}>📂 Abrir carpeta</button>
+        <button onClick={openFiles} style={{ marginLeft: "0.5rem" }}>
+          📄 Abrir archivos
+        </button>
       </p>
       <textarea
         placeholder="Texto opcional para las diapositivas…"
