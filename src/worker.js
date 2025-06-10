@@ -1,13 +1,13 @@
-import { readFile } from "dcmjs";
-import { createFFmpeg } from "@ffmpeg/ffmpeg";
+import dcmjs from "dcmjs";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
 
-const ffmpeg = createFFmpeg({ log: false });
+const ffmpeg = new FFmpeg();
 let ready = false;
 
 self.onmessage = async e => {
   const { file } = e.data;
   const arrayBuffer = await file.arrayBuffer();
-  const dicom = readFile(arrayBuffer);
+  const dicom = dcmjs.data.DicomMessage.readFile(arrayBuffer);
   const pixels = dicom.dict["x7fe00010"].Value[0];
 
   const frames = dicom.meta.NumberOfFrames || 1;
@@ -36,10 +36,10 @@ self.onmessage = async e => {
       const data = new Uint8Array(header.length + slice.length);
       data.set(new TextEncoder().encode(header), 0);
       data.set(slice, header.length);
-      ffmpeg.FS("writeFile", `frame${i}.pgm`, data);
+      await ffmpeg.writeFile(`frame${i}.pgm`, data);
     }
-    await ffmpeg.run("-framerate", fps ? String(fps) : "15", "-i", "frame%03d.pgm", "out.mp4");
-    const mp4 = ffmpeg.FS("readFile", "out.mp4");
+    await ffmpeg.exec(["-framerate", fps ? String(fps) : "15", "-i", "frame%03d.pgm", "out.mp4"]);
+    const mp4 = await ffmpeg.readFile("out.mp4");
     const mp4Blob = new Blob([mp4.buffer], { type: "video/mp4" });
     const mp4Url = URL.createObjectURL(mp4Blob);
     const thumbUrl = mp4Url + "#t=0.1";
