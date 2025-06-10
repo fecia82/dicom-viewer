@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Gallery({ assets, selected, toggle }) {
+export default function Gallery({ assets, selected, toggle, open }) {
   return (
     <div className="grid">
       {assets.map(a => (
@@ -8,6 +8,7 @@ export default function Gallery({ assets, selected, toggle }) {
           key={a.id}
           className={"card" + (selected.includes(a) ? " sel" : "")}
           onClick={() => toggle(a)}
+          onDoubleClick={() => open(a)}
         >
           {a.kind === "video" ? (
             <video
