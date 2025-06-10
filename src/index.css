@@ -28,3 +28,25 @@ main {
   width: 100%;
   display: block;
 }
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.viewer-inner {
+  background: #fff;
+  padding: 1rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+.viewer textarea {
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 0.5rem;
+}
